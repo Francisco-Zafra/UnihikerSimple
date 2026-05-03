@@ -2,8 +2,8 @@
 
 import json
 from datetime import date
-from pathlib import Path
 
+from .paths import CONFIG_PATH
 
 DEFAULT_CONFIG = {
     "auto_switch_seconds": 5 * 60,
@@ -19,8 +19,6 @@ DEFAULT_CONFIG = {
     "quote_url": "https://frasedeldia.azurewebsites.net/api/phrase",
     "quote_refresh_seconds": 24 * 60 * 60,
 }
-
-CONFIG_PATH = Path(__file__).with_name("config.json")
 
 
 def load_config():

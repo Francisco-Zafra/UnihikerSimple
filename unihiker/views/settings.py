@@ -48,8 +48,8 @@ class SettingsView(View):
         title = self.font_title.render("CONFIGURACION", True, TEXT)
         label = self.font_text.render("CAMBIO AUTOMATICO", True, MUTED)
         value = self.font_value.render(format_duration(self.app.auto_switch_seconds), True, GREEN)
-        minus = self.font_small.render("A  -30s", True, MUTED)
-        plus = self.font_small.render("B  +30s", True, MUTED)
+        minus = self.font_small.render("B  -30s", True, MUTED)
+        plus = self.font_small.render("A  +30s", True, MUTED)
         exit_hint = self.font_small.render("A+B  salir", True, ACCENT)
 
         screen.blit(title, ((W - title.get_width()) // 2, 58))

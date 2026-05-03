@@ -2,7 +2,7 @@
 
 import pygame
 
-from investments import InvestmentClient
+from unihiker.services.investments import InvestmentClient
 from .base import View
 
 

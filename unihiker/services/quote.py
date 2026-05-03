@@ -6,11 +6,9 @@ import threading
 import urllib.request
 from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
 from urllib.error import URLError
 
-
-CACHE_DIR = Path(__file__).with_name(".cache")
+from unihiker.paths import CACHE_DIR
 
 
 @dataclass

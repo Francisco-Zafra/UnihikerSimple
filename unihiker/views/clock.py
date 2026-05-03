@@ -5,7 +5,7 @@ from datetime import datetime
 import pygame
 
 from .base import View
-from weather import WeatherClient
+from unihiker.services.weather import WeatherClient
 
 
 BG = (8, 12, 18)

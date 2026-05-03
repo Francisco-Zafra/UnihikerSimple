@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Entry point for the UniHiker multi-view pygame app."""
 
-from app import UnihikerApp
-from views.clock import ClockView
-from views.homeload import HomeLoadView
-from views.investment import InvestmentView
-from views.quote import QuoteView
-from views.settings import SettingsView
+from unihiker.app import UnihikerApp
+from unihiker.views.clock import ClockView
+from unihiker.views.homeload import HomeLoadView
+from unihiker.views.investment import InvestmentView
+from unihiker.views.quote import QuoteView
+from unihiker.views.settings import SettingsView
 
 
 def main():

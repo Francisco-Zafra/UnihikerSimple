@@ -4,7 +4,7 @@ import textwrap
 
 import pygame
 
-from quote import QuoteClient
+from unihiker.services.quote import QuoteClient
 from .base import View
 
 

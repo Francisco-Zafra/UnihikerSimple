@@ -8,10 +8,8 @@ import urllib.request
 from urllib.error import URLError
 from dataclasses import dataclass
 from datetime import date, datetime, time, timezone
-from pathlib import Path
 
-
-CACHE_DIR = Path(__file__).with_name(".cache")
+from unihiker.paths import CACHE_DIR
 
 
 def urlopen_with_cert_fallback(request, timeout):

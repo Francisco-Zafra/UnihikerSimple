@@ -4,22 +4,23 @@ import sys
 
 import pygame
 
-from config import DEFAULT_CONFIG, load_config, save_config
+from .config import DEFAULT_CONFIG, load_config, save_config
 
 
 W, H = 240, 320
 FPS = 30
 DEFAULT_AUTO_SWITCH_SECONDS = DEFAULT_CONFIG["auto_switch_seconds"]
+TRANSITION_SECONDS = 0.28
 
 
 PREVIOUS_KEYS = {
-    pygame.K_a,
+    pygame.K_b,
     pygame.K_LEFT,
     pygame.K_PAGEUP,
 }
 
 NEXT_KEYS = {
-    pygame.K_b,
+    pygame.K_a,
     pygame.K_RIGHT,
     pygame.K_PAGEDOWN,
 }
@@ -51,6 +52,7 @@ class UnihikerApp:
         self.settings_active = False
         self.pressed_keys = set()
         self.combo_consumed = False
+        self.transition = None
         self.screen = None
         self.clock = None
         self.running = False
@@ -83,7 +85,8 @@ class UnihikerApp:
             self._handle_events()
             self._update_auto_switch(dt)
             self.current_view.update(dt)
-            self.current_view.draw(self.screen)
+            self._update_transition(dt)
+            self._draw_frame()
             pygame.display.flip()
 
         pygame.quit()
@@ -111,9 +114,12 @@ class UnihikerApp:
         if not self.settings_view:
             return
 
-        self.current_view.on_exit()
+        previous = self.current_view
+        previous.on_exit()
         self.settings_active = not self.settings_active
-        self.current_view.on_enter()
+        current = self.current_view
+        current.on_enter()
+        self._start_transition(previous, current, direction=0)
         self.reset_auto_switch_timer()
 
     def _set_view(self, index):
@@ -123,10 +129,65 @@ class UnihikerApp:
         if index == self.current_index:
             return
 
-        self.current_view.on_exit()
+        previous = self.current_view
+        previous.on_exit()
+        previous_index = self.current_index
         self.current_index = index
-        self.current_view.on_enter()
+        current = self.current_view
+        current.on_enter()
+        direction = 1
+        if (index - previous_index) % len(self.views) > len(self.views) / 2:
+            direction = -1
+        self._start_transition(previous, current, direction)
         self.reset_auto_switch_timer()
+
+    def _start_transition(self, from_view, to_view, direction):
+        if from_view is to_view:
+            self.transition = None
+            return
+
+        self.transition = {
+            "from": from_view,
+            "to": to_view,
+            "direction": direction,
+            "elapsed": 0.0,
+            "duration": TRANSITION_SECONDS,
+        }
+
+    def _update_transition(self, dt):
+        if not self.transition:
+            return
+
+        self.transition["elapsed"] += dt
+        if self.transition["elapsed"] >= self.transition["duration"]:
+            self.transition = None
+
+    def _draw_frame(self):
+        if not self.transition:
+            self.current_view.draw(self.screen)
+            return
+
+        width, height = self.size
+        duration = self.transition["duration"]
+        t = min(1.0, self.transition["elapsed"] / duration)
+        eased = 1 - (1 - t) * (1 - t)
+
+        from_surface = pygame.Surface(self.size).convert()
+        to_surface = pygame.Surface(self.size).convert()
+        self.transition["from"].draw(from_surface)
+        self.transition["to"].draw(to_surface)
+
+        direction = self.transition["direction"]
+        if direction == 0:
+            self.screen.blit(from_surface, (0, 0))
+            to_surface.set_alpha(int(255 * eased))
+            self.screen.blit(to_surface, (0, 0))
+            return
+
+        offset = int(width * eased)
+        self.screen.fill((0, 0, 0))
+        self.screen.blit(from_surface, (-direction * offset, 0))
+        self.screen.blit(to_surface, (direction * (width - offset), 0))
 
     def _update_auto_switch(self, dt):
         if self.settings_active or self.auto_switch_seconds <= 0:
@@ -154,6 +215,9 @@ class UnihikerApp:
                     continue
 
                 if event.key in PREVIOUS_KEYS or event.key in NEXT_KEYS:
+                    if self.transition:
+                        continue
+
                     self.pressed_keys.add(event.key)
                     if (
                         self._has_previous_pressed()
@@ -166,6 +230,12 @@ class UnihikerApp:
 
             if event.type == pygame.KEYUP:
                 if event.key in PREVIOUS_KEYS or event.key in NEXT_KEYS:
+                    if self.transition:
+                        self.pressed_keys.discard(event.key)
+                        if not self.pressed_keys:
+                            self.combo_consumed = False
+                        continue
+
                     was_combo = self.combo_consumed
                     is_previous = event.key in PREVIOUS_KEYS
                     is_next = event.key in NEXT_KEYS
@@ -190,4 +260,5 @@ class UnihikerApp:
                         self.next_view()
                     continue
 
-            self.current_view.handle_event(event)
+            if not self.transition:
+                self.current_view.handle_event(event)

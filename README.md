@@ -18,14 +18,14 @@ python homeload.py
 
 ## Controles
 
-- `A`: vista anterior.
-- `B`: vista siguiente.
+- `A`: vista siguiente.
+- `B`: vista anterior.
 - `Left` / `Right`: equivalentes para probar en escritorio.
 - `PageUp` / `PageDown`: equivalentes adicionales.
 - `Esc` o `Q`: salir.
 
 Si tu imagen de UniHiker emite otros codigos de tecla para los botones fisicos,
-ajusta `PREVIOUS_KEYS` y `NEXT_KEYS` en `app.py`.
+ajusta `PREVIOUS_KEYS` y `NEXT_KEYS` en `unihiker/app.py`.
 
 La documentacion oficial de UniHiker indica que A y B estan mapeados tambien
 como botones de teclado, por lo que se pueden leer desde pygame:
@@ -35,26 +35,30 @@ https://www.unihiker.com/wiki/LanguageReference/PinPong_Library/FunctionOnboard/
 
 ```text
 .
-|-- app.py              # Bucle principal, ventana pygame y navegacion
-|-- config.py           # Lectura/escritura de configuracion
-|-- investments.py      # Cliente Yahoo Finance con cache local
-|-- quote.py            # Cliente Frase del Dia con cache local
-|-- weather.py          # Cliente Open-Meteo sin dependencias externas
 |-- main.py             # Registro de vistas y punto de entrada recomendado
 |-- homeload.py         # Launcher de compatibilidad
-|-- views/
-|   |-- base.py         # Interfaz base de una vista
-|   |-- homeload.py     # Vista de progreso de la vivienda
-|   |-- clock.py        # Vista reloj de ejemplo
-|   |-- investment.py   # Evolucion del Fidelity MSCI World
-|   |-- quote.py        # Frase del dia
-|   `-- settings.py     # Vista de configuracion fuera del carrusel
+|-- config.json         # Configuracion local generada/editable
+|-- unihiker/
+|   |-- app.py          # Bucle principal, navegacion y cambio automatico
+|   |-- config.py       # Lectura/escritura de configuracion
+|   |-- paths.py        # Rutas compartidas del proyecto
+|   |-- services/       # Clientes externos con cache local
+|   |   |-- investments.py
+|   |   |-- quote.py
+|   |   `-- weather.py
+|   `-- views/          # Pantallas del carrusel y configuracion
+|       |-- base.py
+|       |-- homeload.py
+|       |-- clock.py
+|       |-- investment.py
+|       |-- quote.py
+|       `-- settings.py
 `-- README.md
 ```
 
 ## Crear una vista nueva
 
-1. Crea un archivo en `views/`, por ejemplo `views/weather.py`.
+1. Crea un archivo en `unihiker/views/`, por ejemplo `unihiker/views/weather.py`.
 2. Hereda de `View`.
 3. Implementa al menos `draw(self, screen)`.
 4. Registrala en `main.py`.
@@ -77,7 +81,7 @@ class WeatherView(View):
 Despues en `main.py`:
 
 ```python
-from views.weather import WeatherView
+from unihiker.views.weather import WeatherView
 
 app = UnihikerApp(
     views=[
@@ -99,7 +103,7 @@ Cada vista puede implementar estos metodos:
 - `update(dt)`: logica por frame. `dt` esta en segundos.
 - `draw(screen)`: dibuja la vista actual.
 
-La navegacion global vive en `app.py`, asi que cada vista puede centrarse en su
+La navegacion global vive en `unihiker/app.py`, asi que cada vista puede centrarse en su
 propia pantalla.
 
 ## Cambio automatico
@@ -107,8 +111,8 @@ propia pantalla.
 Las vistas del carrusel cambian automaticamente cada 5 minutos por defecto.
 Pulsa `A+B` a la vez para abrir la vista de configuracion. En esa pantalla:
 
-- `A`: resta 30 segundos.
-- `B`: suma 30 segundos.
+- `A`: suma 30 segundos.
+- `B`: resta 30 segundos.
 - `A+B`: vuelve al carrusel.
 
 El valor se guarda en `config.json` cuando se cambia desde la vista de
