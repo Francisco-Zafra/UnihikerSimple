@@ -5,6 +5,8 @@ import sys
 import pygame
 
 from .config import DEFAULT_CONFIG, load_config, save_config
+from .notifications import NotificationCenter
+from .services.buzzer import BuzzerClient
 
 
 W, H = 240, 320
@@ -30,6 +32,10 @@ QUIT_KEYS = {
     pygame.K_q,
 }
 
+TEST_NOTIFICATION_KEYS = {
+    pygame.K_n,
+}
+
 
 class UnihikerApp:
     """Small pygame shell that owns the screen and switches between views."""
@@ -53,6 +59,9 @@ class UnihikerApp:
         self.pressed_keys = set()
         self.combo_consumed = False
         self.transition = None
+        self.buzzer = BuzzerClient(enabled=self.config["buzzer_enabled"])
+        self.notifications = NotificationCenter(size=size, buzzer=self.buzzer)
+        self.test_notification_index = 0
         self.screen = None
         self.clock = None
         self.running = False
@@ -85,8 +94,10 @@ class UnihikerApp:
             self._handle_events()
             self._update_auto_switch(dt)
             self.current_view.update(dt)
+            self.notifications.update(dt)
             self._update_transition(dt)
             self._draw_frame()
+            self.notifications.draw(self.screen)
             pygame.display.flip()
 
         pygame.quit()
@@ -209,9 +220,16 @@ class UnihikerApp:
                 self.stop()
                 continue
 
+            if self.notifications.handle_event(event):
+                continue
+
             if event.type == pygame.KEYDOWN:
                 if event.key in QUIT_KEYS:
                     self.stop()
+                    continue
+
+                if event.key in TEST_NOTIFICATION_KEYS:
+                    self._push_test_notification()
                     continue
 
                 if event.key in PREVIOUS_KEYS or event.key in NEXT_KEYS:
@@ -262,3 +280,14 @@ class UnihikerApp:
 
             if not self.transition:
                 self.current_view.handle_event(event)
+
+    def _push_test_notification(self):
+        samples = (
+            ("Info", "Se cierra sola", "info"),
+            ("Notice", "Toca la pantalla para cerrar", "notice"),
+            ("Warning", "Requiere confirmacion", "warning"),
+            ("Critical", "No desaparece sola", "critical"),
+        )
+        title, message, level = samples[self.test_notification_index % len(samples)]
+        self.test_notification_index += 1
+        self.notifications.push(title, message, level=level)

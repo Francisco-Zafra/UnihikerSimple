@@ -22,6 +22,7 @@ python homeload.py
 - `B`: vista anterior.
 - `Left` / `Right`: equivalentes para probar en escritorio.
 - `PageUp` / `PageDown`: equivalentes adicionales.
+- `N`: lanza una notificacion de prueba en escritorio.
 - `Esc` o `Q`: salir.
 
 Si tu imagen de UniHiker emite otros codigos de tecla para los botones fisicos,
@@ -41,6 +42,7 @@ https://www.unihiker.com/wiki/LanguageReference/PinPong_Library/FunctionOnboard/
 |-- unihiker/
 |   |-- app.py          # Bucle principal, navegacion y cambio automatico
 |   |-- config.py       # Lectura/escritura de configuracion
+|   |-- notifications.py # Overlay global de notificaciones
 |   |-- paths.py        # Rutas compartidas del proyecto
 |   |-- services/       # Clientes externos con cache local
 |   |   |-- buzzer.py
@@ -109,6 +111,36 @@ Cada vista puede implementar estos metodos:
 La navegacion global vive en `unihiker/app.py`, asi que cada vista puede centrarse en su
 propia pantalla.
 
+## Notificaciones
+
+La app tiene una capa global de notificaciones en `unihiker/notifications.py`.
+Las notificaciones aparecen como una caja desplegable desde la parte superior,
+ocupando aproximadamente el 20% de la pantalla, al estilo de un telefono.
+
+Para probarlo en PC, pulsa `N`. Cada pulsacion alterna entre `info`,
+`notice`, `warning` y `critical`.
+
+Desde cualquier parte que tenga acceso a `app`, se puede lanzar una notificacion:
+
+```python
+app.notifications.push(
+    "Correo",
+    "Nuevo mensaje importante",
+    level="info",
+)
+```
+
+Niveles preparados:
+
+- `info`: aviso normal; se cierra solo.
+- `notice`: aviso visible hasta tocar la pantalla.
+- `warning`: aviso que conviene mirar; se cierra tocando la pantalla.
+- `critical`: aviso importante; se cierra tocando la pantalla.
+
+La idea para fuentes externas es que servicios futuros como Gmail, YouTube,
+Home Assistant, Telegram o webhooks conviertan sus eventos a este formato comun:
+`title`, `message` y `level`.
+
 ## Cambio automatico
 
 Las vistas del carrusel cambian automaticamente cada 5 minutos por defecto.
@@ -170,6 +202,14 @@ buzzer.beep()
 El servicio importa PinPong de forma diferida. Si se ejecuta en escritorio o en
 una venv sin PinPong, no rompe la app: simplemente deja el buzzer como no
 disponible.
+
+Cuando `buzzer_enabled` esta en `true`, las notificaciones usan patrones
+sonoros distintos:
+
+- `info`: pitido corto.
+- `notice`: dos tonos ascendentes.
+- `warning`: tres tonos descendentes.
+- `critical`: patron urgente alterno.
 
 ## Inversion
 
