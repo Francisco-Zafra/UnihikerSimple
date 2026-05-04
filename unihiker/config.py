@@ -7,6 +7,10 @@ from .paths import CONFIG_PATH
 
 DEFAULT_CONFIG = {
     "auto_switch_seconds": 5 * 60,
+    "web_enabled": True,
+    "web_host": "0.0.0.0",
+    "web_port": 8123,
+    "view_order": ["homeload", "clock", "investment", "quote"],
     "weather_enabled": True,
     "weather_label": "Benalmadena",
     "weather_latitude": 36.5988,
@@ -36,6 +40,14 @@ def load_config():
     config.update({key: value for key, value in data.items() if key in config})
     if not isinstance(config["auto_switch_seconds"], (int, float)):
         config["auto_switch_seconds"] = DEFAULT_CONFIG["auto_switch_seconds"]
+    if not isinstance(config["web_enabled"], bool):
+        config["web_enabled"] = DEFAULT_CONFIG["web_enabled"]
+    if not isinstance(config["web_host"], str):
+        config["web_host"] = DEFAULT_CONFIG["web_host"]
+    if not isinstance(config["web_port"], (int, float)):
+        config["web_port"] = DEFAULT_CONFIG["web_port"]
+    if not isinstance(config["view_order"], list):
+        config["view_order"] = list(DEFAULT_CONFIG["view_order"])
     if not isinstance(config["weather_enabled"], bool):
         config["weather_enabled"] = DEFAULT_CONFIG["weather_enabled"]
     if not isinstance(config["weather_label"], str):
@@ -62,6 +74,13 @@ def load_config():
         config["quote_refresh_seconds"] = DEFAULT_CONFIG["quote_refresh_seconds"]
 
     config["auto_switch_seconds"] = max(10, int(config["auto_switch_seconds"]))
+    config["web_port"] = min(65535, max(1, int(config["web_port"])))
+    config["view_order"] = [
+        name for name in config["view_order"]
+        if isinstance(name, str) and name in DEFAULT_CONFIG["view_order"]
+    ]
+    if not config["view_order"]:
+        config["view_order"] = list(DEFAULT_CONFIG["view_order"])
     config["weather_latitude"] = float(config["weather_latitude"])
     config["weather_longitude"] = float(config["weather_longitude"])
     config["weather_refresh_seconds"] = max(60, int(config["weather_refresh_seconds"]))

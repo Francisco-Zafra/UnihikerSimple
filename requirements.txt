@@ -1,0 +1,3 @@
+numpy
+pinpong
+pygame == 2.6.1

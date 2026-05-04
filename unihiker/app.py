@@ -7,6 +7,7 @@ import pygame
 from .config import DEFAULT_CONFIG, load_config, save_config
 from .notifications import NotificationCenter
 from .services.buzzer import BuzzerClient
+from .services.web_config import start_web_config_server
 
 
 W, H = 240, 320
@@ -48,7 +49,8 @@ class UnihikerApp:
         if auto_switch_seconds is not None:
             self.config["auto_switch_seconds"] = auto_switch_seconds
 
-        self.views = list(views)
+        self.all_views = list(views)
+        self.views = self._configured_views(self.config["view_order"])
         self.settings_view = settings_view
         self.size = size
         self.fps = fps
@@ -62,6 +64,7 @@ class UnihikerApp:
         self.buzzer = BuzzerClient(enabled=self.config["buzzer_enabled"])
         self.notifications = NotificationCenter(size=size, buzzer=self.buzzer)
         self.test_notification_index = 0
+        self.web_server = None
         self.screen = None
         self.clock = None
         self.running = False
@@ -72,6 +75,10 @@ class UnihikerApp:
             return self.settings_view
         return self.views[self.current_index]
 
+    @property
+    def view_names(self):
+        return [view.name for view in self.all_views]
+
     def run(self):
         pygame.init()
         self.screen = pygame.display.set_mode(self.size)
@@ -80,27 +87,31 @@ class UnihikerApp:
         self.clock = pygame.time.Clock()
         self.running = True
 
-        mounted_views = list(self.views)
+        mounted_views = list(self.all_views)
         if self.settings_view:
             mounted_views.append(self.settings_view)
 
         for view in mounted_views:
             view.on_mount(self)
 
+        self.web_server = start_web_config_server(self)
         self.current_view.on_enter()
 
-        while self.running:
-            dt = self.clock.tick(self.fps) / 1000.0
-            self._handle_events()
-            self._update_auto_switch(dt)
-            self.current_view.update(dt)
-            self.notifications.update(dt)
-            self._update_transition(dt)
-            self._draw_frame()
-            self.notifications.draw(self.screen)
-            pygame.display.flip()
-
-        pygame.quit()
+        try:
+            while self.running:
+                dt = self.clock.tick(self.fps) / 1000.0
+                self._handle_events()
+                self._update_auto_switch(dt)
+                self.current_view.update(dt)
+                self.notifications.update(dt)
+                self._update_transition(dt)
+                self._draw_frame()
+                self.notifications.draw(self.screen)
+                pygame.display.flip()
+        finally:
+            if self.web_server:
+                self.web_server.stop()
+            pygame.quit()
         sys.exit()
 
     def stop(self):
@@ -120,6 +131,22 @@ class UnihikerApp:
 
     def reset_auto_switch_timer(self):
         self.auto_switch_elapsed = 0.0
+
+    def apply_view_order(self, view_order):
+        ordered_views = self._configured_views(view_order)
+        current_name = self.current_view.name if not self.settings_active else None
+
+        self.views = ordered_views
+        if current_name:
+            self.current_index = next(
+                (index for index, view in enumerate(self.views) if view.name == current_name),
+                0,
+            )
+        else:
+            self.current_index = min(self.current_index, len(self.views) - 1)
+
+        self.transition = None
+        self.reset_auto_switch_timer()
 
     def toggle_settings(self):
         if not self.settings_view:
@@ -151,6 +178,13 @@ class UnihikerApp:
             direction = -1
         self._start_transition(previous, current, direction)
         self.reset_auto_switch_timer()
+
+    def _configured_views(self, view_order):
+        views_by_name = {view.name: view for view in self.all_views}
+        names = [name for name in view_order if name in views_by_name]
+        if not names:
+            names = [view.name for view in self.all_views]
+        return [views_by_name[name] for name in names]
 
     def _start_transition(self, from_view, to_view, direction):
         if from_view is to_view:

@@ -95,17 +95,25 @@ class NotificationCenter:
         self.dismiss()
         return True
 
+    def snapshot(self):
+        return {
+            "current": self.current.__dict__ if self.current else None,
+            "queued": len(self.queue),
+            "dismissing": self.dismissing,
+        }
+
     def draw(self, screen):
-        if not self.current:
+        current = self.current
+        if not current:
             return
 
         self._ensure_fonts()
 
         width, _ = self.size
         rect_width = width - MARGIN * 2
-        y = self._current_y()
+        y = self._current_y(current)
         rect = pygame.Rect(MARGIN, y, rect_width, HEIGHT)
-        palette = COLORS[self.current.level]
+        palette = COLORS[current.level]
 
         pygame.draw.rect(screen, palette["bg"], rect, border_radius=8)
         pygame.draw.rect(screen, palette["accent"], rect, width=1, border_radius=8)
@@ -116,12 +124,12 @@ class NotificationCenter:
             border_radius=2,
         )
 
-        title = self._fit_text(self.current.title.upper(), self.font_title, rect_width - 24)
+        title = self._fit_text(current.title.upper(), self.font_title, rect_width - 24)
         title_surface = self.font_title.render(title, True, palette["title"])
         screen.blit(title_surface, (rect.left + 12, rect.top + 11))
 
-        if self.current.message:
-            message = self._fit_text(self.current.message, self.font_body, rect_width - 24)
+        if current.message:
+            message = self._fit_text(current.message, self.font_body, rect_width - 24)
             body_surface = self.font_body.render(message, True, palette["body"])
             screen.blit(body_surface, (rect.left + 12, rect.top + 34))
 
@@ -153,7 +161,7 @@ class NotificationCenter:
         elif level == "critical":
             self.buzzer.sequence((880, 440, 880, 440), beats=1)
 
-    def _current_y(self):
+    def _current_y(self, current):
         if self.dismissing:
             t = min(1.0, self.dismiss_elapsed / SLIDE_SECONDS)
             return int(MARGIN - (HEIGHT + MARGIN) * self._ease_in(t))
@@ -162,7 +170,7 @@ class NotificationCenter:
             t = self.elapsed / SLIDE_SECONDS
             return int(-HEIGHT + (HEIGHT + MARGIN) * self._ease_out(t))
 
-        if self.current.level in PERSISTENT_LEVELS:
+        if current.level in PERSISTENT_LEVELS:
             return MARGIN
 
         hide_at = SLIDE_SECONDS + VISIBLE_SECONDS

@@ -48,6 +48,7 @@ https://www.unihiker.com/wiki/LanguageReference/PinPong_Library/FunctionOnboard/
 |   |   |-- buzzer.py
 |   |   |-- investments.py
 |   |   |-- quote.py
+|   |   |-- web_config.py
 |   |   `-- weather.py
 |   `-- views/          # Pantallas del carrusel y configuracion
 |       |-- base.py
@@ -152,6 +153,52 @@ Pulsa `A+B` a la vez para abrir la vista de configuracion. En esa pantalla:
 
 El valor se guarda en `config.json` cuando se cambia desde la vista de
 configuracion. Si el archivo no existe, se usa el valor por defecto.
+
+## Interfaz Web
+
+La app levanta una interfaz web de configuracion en segundo plano. Por defecto:
+
+```text
+http://IP_DE_LA_UNIHIKER:8123
+```
+
+La web permite editar `config.json`, activar/desactivar el buzzer, cambiar clima,
+inversion, frase, intervalos de refresco, activar/desactivar vistas, cambiar el
+orden del carrusel arrastrando las cajas y enviar notificaciones de prueba.
+Tambien expone endpoints para integraciones externas:
+
+```text
+GET  /api/config
+POST /api/config
+GET  /api/state
+POST /api/notify
+```
+
+Ejemplo de notificacion externa:
+
+```bash
+curl -X POST http://IP_DE_LA_UNIHIKER:8123/api/notify \
+  -H "Content-Type: application/json" \
+  -d "{\"title\":\"YouTube\",\"message\":\"Nuevo video\",\"level\":\"notice\"}"
+```
+
+Configuracion relacionada:
+
+```json
+{
+  "web_enabled": true,
+  "web_host": "0.0.0.0",
+  "web_port": 8123,
+  "view_order": ["homeload", "clock", "investment", "quote"]
+}
+```
+
+Cambiar `web_host`, `web_port` o `web_enabled` se guarda al momento, pero el
+servidor web usa esos valores en el siguiente reinicio de la app. Si el puerto
+no se puede abrir, la app sigue funcionando sin la interfaz web.
+
+Nota: el puerto `123` no es recomendable para una web porque muchos navegadores
+lo bloquean como puerto inseguro/reservado.
 
 ## Clima
 
