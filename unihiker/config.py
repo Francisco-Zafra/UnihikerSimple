@@ -12,6 +12,7 @@ DEFAULT_CONFIG = {
     "weather_latitude": 36.5988,
     "weather_longitude": -4.5168,
     "weather_refresh_seconds": 15 * 60,
+    "buzzer_enabled": False,
     "investment_label": "Fidelity MSCI World",
     "investment_symbol": "0P0001CLDK.F",
     "investment_start_date": "2025-05-16",
@@ -45,6 +46,8 @@ def load_config():
         config["weather_longitude"] = DEFAULT_CONFIG["weather_longitude"]
     if not isinstance(config["weather_refresh_seconds"], (int, float)):
         config["weather_refresh_seconds"] = DEFAULT_CONFIG["weather_refresh_seconds"]
+    if not isinstance(config["buzzer_enabled"], bool):
+        config["buzzer_enabled"] = DEFAULT_CONFIG["buzzer_enabled"]
     if not isinstance(config["investment_label"], str):
         config["investment_label"] = DEFAULT_CONFIG["investment_label"]
     if not isinstance(config["investment_symbol"], str):

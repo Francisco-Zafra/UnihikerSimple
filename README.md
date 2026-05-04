@@ -43,6 +43,7 @@ https://www.unihiker.com/wiki/LanguageReference/PinPong_Library/FunctionOnboard/
 |   |-- config.py       # Lectura/escritura de configuracion
 |   |-- paths.py        # Rutas compartidas del proyecto
 |   |-- services/       # Clientes externos con cache local
+|   |   |-- buzzer.py
 |   |   |-- investments.py
 |   |   |-- quote.py
 |   |   `-- weather.py
@@ -53,6 +54,8 @@ https://www.unihiker.com/wiki/LanguageReference/PinPong_Library/FunctionOnboard/
 |       |-- investment.py
 |       |-- quote.py
 |       `-- settings.py
+|-- tools/
+|   `-- test_buzzer.py  # Prueba manual del buzzer/audio en la UniHiker
 `-- README.md
 ```
 
@@ -132,6 +135,42 @@ usa Benalmadena y refresca cada 15 minutos. Puedes cambiar estos valores en
   "weather_refresh_seconds": 900
 }
 ```
+
+## Buzzer
+
+La UniHiker tiene buzzer integrado. La app no lo usa todavia, pero queda
+preparado para futuras alertas o confirmaciones sonoras.
+
+La configuracion incluye el interruptor apagado por defecto:
+
+```json
+{
+  "buzzer_enabled": false
+}
+```
+
+Para comprobar el hardware en la placa:
+
+```bash
+python3 tools/test_buzzer.py
+```
+
+Usa `python3`, no `uv run`, porque PinPong suele estar instalado en el Python
+del sistema de la UniHiker y no dentro de la `.venv` creada por `uv`.
+
+Para usarlo en una vista o en `app.py` mas adelante:
+
+```python
+from unihiker.services.buzzer import BuzzerClient
+
+buzzer = BuzzerClient(enabled=app.config["buzzer_enabled"])
+buzzer.beep()
+```
+
+El servicio importa PinPong de forma diferida. Si se ejecuta en escritorio o en
+una venv sin PinPong, no rompe la app: simplemente deja el buzzer como no
+disponible.
+
 ## Inversion
 
 La vista de inversion muestra la evolucion del Fidelity MSCI World Index Fund
