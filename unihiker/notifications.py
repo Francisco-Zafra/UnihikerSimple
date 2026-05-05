@@ -10,7 +10,7 @@ W, H = 240, 320
 HEIGHT = 64
 MARGIN = 8
 SLIDE_SECONDS = 0.22
-VISIBLE_SECONDS = 3.6
+VISIBLE_SECONDS = 60.0
 PERSISTENT_LEVELS = {"notice", "warning", "critical"}
 
 COLORS = {
@@ -89,9 +89,6 @@ class NotificationCenter:
             return False
         if event.type not in (pygame.MOUSEBUTTONUP, pygame.FINGERUP):
             return False
-        if self.current.level not in PERSISTENT_LEVELS:
-            return False
-
         self.dismiss()
         return True
 
