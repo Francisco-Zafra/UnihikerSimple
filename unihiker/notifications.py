@@ -152,6 +152,7 @@ class NotificationCenter:
         if not self.buzzer:
             return
 
+        print(f"Notification buzzer: {level}")
         if level == "info":
             self.buzzer.beep(frequency=880, beats=1)
         elif level == "notice":

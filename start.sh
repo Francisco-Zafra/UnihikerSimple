@@ -8,5 +8,5 @@ export PATH="/root/.local/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 sleep 20
 
 uv sync
-uv add pygame
+uv pip install -r requirements.txt
 uv run ./main.py >> /root/UnihikerSimple/app.log 2>&1

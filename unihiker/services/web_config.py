@@ -130,10 +130,16 @@ class WebConfigServer:
                     payload = self._read_form()
                     push_notification(app, payload)
                     self._redirect("/?notified=1")
+                elif path == "/buzzer/test":
+                    app.buzzer.sequence((660, 880, 660), beats=1)
+                    self._redirect("/?buzzed=1")
                 elif path == "/api/notify":
                     payload = self._read_json()
                     push_notification(app, payload)
                     self._send_json({"ok": True})
+                elif path == "/api/buzzer/test":
+                    app.buzzer.sequence((660, 880, 660), beats=1)
+                    self._send_json({"ok": True, "buzzer": app.buzzer.snapshot()})
                 else:
                     self.send_error(404)
 
@@ -146,6 +152,8 @@ class WebConfigServer:
                     return "Configuracion guardada"
                 if query.get("notified"):
                     return "Notificacion enviada"
+                if query.get("buzzed"):
+                    return "Prueba de buzzer enviada"
                 return ""
 
             def _state_payload(self):
@@ -155,6 +163,7 @@ class WebConfigServer:
                     "available_views": app.view_names,
                     "active_views": [view.name for view in app.views],
                     "notifications": app.notifications.snapshot(),
+                    "buzzer": app.buzzer.snapshot(),
                 }
 
             def _read_form(self):
@@ -225,13 +234,7 @@ def update_config(app, values):
     app.config.update(config)
     app.apply_view_order(app.config["view_order"])
     app.auto_switch_seconds = app.config["auto_switch_seconds"]
-    if app.buzzer.enabled != bool(app.config["buzzer_enabled"]):
-        app.buzzer._initialized = False
-        app.buzzer.available = False
-        app.buzzer.error = None
-    app.buzzer.enabled = bool(app.config["buzzer_enabled"])
-    if not app.buzzer.enabled:
-        app.buzzer.stop()
+    app.buzzer.set_enabled(app.config["buzzer_enabled"])
     save_config(app.config)
 
 
@@ -550,6 +553,13 @@ def render_page(app, message=""):
         <p><code>POST /api/notify</code></p>
         <p class="muted">Estado basico:</p>
         <p><code>GET /api/state</code></p>
+      </section>
+      <section>
+        <h2>Buzzer</h2>
+        <p class="muted">Usa la misma ruta interna que las notificaciones.</p>
+        <form method="post" action="/buzzer/test">
+          <button type="submit">Probar buzzer</button>
+        </form>
       </section>
     </aside>
   </main>
