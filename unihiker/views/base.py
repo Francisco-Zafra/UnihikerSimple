@@ -16,6 +16,9 @@ class View:
     def on_exit(self):
         pass
 
+    def on_config_updated(self):
+        pass
+
     def handle_event(self, event):
         pass
 

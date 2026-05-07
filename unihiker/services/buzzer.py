@@ -21,6 +21,18 @@ class BuzzerClient:
         self._lock = threading.Lock()
         self._initialized = False
 
+    def set_enabled(self, enabled):
+        enabled = bool(enabled)
+        if self.enabled == enabled:
+            return
+
+        self.enabled = enabled
+        self.available = False
+        self.error = None
+        self._board = None
+        self._buzzer = None
+        self._initialized = False
+
     def initialize(self):
         if self._initialized:
             return self.available

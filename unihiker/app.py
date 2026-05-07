@@ -148,6 +148,12 @@ class UnihikerApp:
         self.transition = None
         self.reset_auto_switch_timer()
 
+    def notify_config_updated(self):
+        for view in self.all_views:
+            view.on_config_updated()
+        if self.settings_view:
+            self.settings_view.on_config_updated()
+
     def toggle_settings(self):
         if not self.settings_view:
             return

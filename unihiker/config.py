@@ -21,8 +21,8 @@ DEFAULT_CONFIG = {
     "investment_symbol": "0P0001CLDK.F",
     "investment_start_date": "2025-05-16",
     "investment_refresh_seconds": 6 * 60 * 60,
-    "quote_url": "https://frasedeldia.azurewebsites.net/api/phrase",
-    "quote_refresh_seconds": 24 * 60 * 60,
+    "quote_url": "https://uselessfacts.jsph.pl/api/v2/facts/today",
+    "quote_refresh_hour": 5,
 }
 
 
@@ -70,8 +70,8 @@ def load_config():
         config["investment_refresh_seconds"] = DEFAULT_CONFIG["investment_refresh_seconds"]
     if not isinstance(config["quote_url"], str):
         config["quote_url"] = DEFAULT_CONFIG["quote_url"]
-    if not isinstance(config["quote_refresh_seconds"], (int, float)):
-        config["quote_refresh_seconds"] = DEFAULT_CONFIG["quote_refresh_seconds"]
+    if not isinstance(config["quote_refresh_hour"], (int, float)):
+        config["quote_refresh_hour"] = DEFAULT_CONFIG["quote_refresh_hour"]
 
     config["auto_switch_seconds"] = max(10, int(config["auto_switch_seconds"]))
     config["web_port"] = min(65535, max(1, int(config["web_port"])))
@@ -89,7 +89,7 @@ def load_config():
     except ValueError:
         config["investment_start_date"] = DEFAULT_CONFIG["investment_start_date"]
     config["investment_refresh_seconds"] = max(300, int(config["investment_refresh_seconds"]))
-    config["quote_refresh_seconds"] = max(3600, int(config["quote_refresh_seconds"]))
+    config["quote_refresh_hour"] = min(23, max(0, int(config["quote_refresh_hour"])))
     return config
 
 

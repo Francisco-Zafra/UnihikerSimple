@@ -264,24 +264,26 @@ La vista de inversion muestra la evolucion del Fidelity MSCI World Index Fund
 EUR P Acc desde el 16/05/2025. Usa el simbolo de Yahoo Finance `0P0001CLDK.F`
 y cachea los datos en `.cache/`.
 
-## Frase Del Dia
+## Daily Fact
 
-La vista de frase usa la API publica:
+La vista Daily Fact usa la API publica:
 
 ```text
-https://frasedeldia.azurewebsites.net/api/phrase
+https://uselessfacts.jsph.pl/api/v2/facts/today
 ```
 
 Formato esperado:
 
 ```json
 {
-  "phrase": "A la velocidad de la luz, todos se fusionan con todos. La identidad privada desaparece.",
-  "author": "Herbert Marshall McLuhan"
+  "text": "Reindeer like to eat bananas."
 }
 ```
 
-Se refresca una vez al dia y cachea el ultimo resultado en `.cache/`.
+Solo se muestra el campo `text`, con el `source` resumido en el footer. Se
+consulta cada vez que arranca la app y vuelve a refrescar a la hora configurada
+en `quote_refresh_hour` (05:00 por defecto). Cachea el ultimo resultado en
+`.cache/`.
 
 ## TODO
 - Home Assistant

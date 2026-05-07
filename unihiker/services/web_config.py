@@ -43,10 +43,10 @@ FIELD_GROUPS = (
         ),
     ),
     (
-        "Frase",
+        "Daily Fact",
         (
-            ("quote_url", "URL frase", "text"),
-            ("quote_refresh_seconds", "Refresco frase (s)", "number"),
+            ("quote_url", "URL daily fact", "text"),
+            ("quote_refresh_hour", "Hora refresco (0-23)", "number"),
         ),
     ),
     (
@@ -236,6 +236,7 @@ def update_config(app, values):
     app.auto_switch_seconds = app.config["auto_switch_seconds"]
     app.buzzer.set_enabled(app.config["buzzer_enabled"])
     save_config(app.config)
+    app.notify_config_updated()
 
 
 def coerce_value(key, value):
@@ -276,8 +277,8 @@ def normalize_value(key, value):
         return max(60, int(value))
     if key == "investment_refresh_seconds":
         return max(300, int(value))
-    if key == "quote_refresh_seconds":
-        return max(3600, int(value))
+    if key == "quote_refresh_hour":
+        return min(23, max(0, int(value)))
     return value
 
 
